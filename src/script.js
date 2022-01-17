@@ -5,7 +5,52 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { WebGLBindingStates } from 'three/src/renderers/webgl/WebGLBindingStates'
 import * as dat from 'lil-gui'
 import gsap from 'gsap'
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
+
+/** 
+ * * Textures
+*/
+const loadingManager = new THREE.LoadingManager()
+
+loadingManager.onStart = () =>
+{
+    console.log('Start')
+}
+
+loadingManager.onLoaded = () =>
+{
+    console.log('Loaded')
+}
+
+loadingManager.onProgress = () =>
+{
+    console.log('Progress')
+}
+
+loadingManager.onError = () =>
+{
+    console.log('Error')
+}
+
+const textureLoader = new THREE.TextureLoader(loadingManager) 
+const colorTexture = textureLoader.load('./textures/door/color.jpg')
+const alphaTexture = textureLoader.load('./textures/door/alpha.jpg')
+const heightTexture = textureLoader.load('./textures/door/height.jpg')
+const normalTexture = textureLoader.load('./textures/door/normal.jpg')
+const ambientOcclusionTexture = textureLoader.load('./textures/door/ambientOcclusion.jpg')
+const metalnessTexture = textureLoader.load('./textures/door/metalness.jpg')
+const roughnessTexture = textureLoader.load('./textures/door/roughness.jpg')
+
+colorTexture.repeat.x = 2
+colorTexture.repeat.y = 3
+
+colorTexture.wrapS = THREE.MirroredRepeatWrapping
+colorTexture.wrapT = THREE.MirroredRepeatWrapping
+
+colorTexture.offset.x = 0.5
+colorTexture.offset.y = 0.5
+
+colorTexture.rotation = Math.PI / 4
+
 
 /** 
  * * GUI 
@@ -22,7 +67,7 @@ const parameters = {
 gui
     .addColor(parameters, 'color')
     .onChange(() => {
-        material.color.set(parameters.color)
+        materialTriangles.color.set(parameters.color)
     })
 gui
     .add(parameters, 'spin')
@@ -64,15 +109,20 @@ const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
 geometry.setAttribute('position', positionsAttribute)
 
 //Box
-const box = new THREE.BoxGeometry(1, 1, 1, 1, 1, 2)
-const material = new THREE.MeshBasicMaterial(
+const box = new THREE.BoxBufferGeometry(1, 1, 1)
+const materialBox = new THREE.MeshBasicMaterial(
+    {
+        wireframe: false,
+        map: colorTexture
+    })
+const materialTriangles = new THREE.MeshBasicMaterial (
     {
         color: parameters.color,
         wireframe: true
-    })
-
-const mesh = new THREE.Mesh(box, material)
-const mesh2 = new THREE.Mesh(geometry, material)
+    }
+)
+const mesh = new THREE.Mesh(box, materialBox)
+const mesh2 = new THREE.Mesh(geometry, materialTriangles)
 
 /** 
  * * Position 
@@ -82,7 +132,7 @@ mesh.position.set(2, -0.1, -2)
 /** 
  * * Scale 
 */
-mesh.scale.set(2, 0.5, 1.5)
+mesh.scale.set(1, 1, 1)
 
 /** 
  * * Rotation 
@@ -103,7 +153,7 @@ gui
 gui
     .add(mesh, 'visible')
 gui
-    .add(material, 'wireframe')
+    .add(materialTriangles, 'wireframe') 
 
 /** 
  * * Axes Helper 
